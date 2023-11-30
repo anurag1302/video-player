@@ -58,8 +58,7 @@
           });
         }
       );
-      console.log("my code");
-      console.log(player);
+
       var segmentsArray = renderSegments();
 
       player.on("loadedmetadata", function () {
@@ -92,8 +91,6 @@
           progressControlChildElement.append(hoverElement);
         }
       });
-
-      console.log("player", player);
 
       function renderSegments() {
         return [
