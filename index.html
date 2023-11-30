@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.11.7/video-js.min.css"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.11.7/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-eme@3.8.0/dist/videojs-contrib-eme.js"></script>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="styles.css" />
+
+    <title>Test VideJS DRM</title>
+  </head>
+  <body>
+    <div style="margin: 50px auto">
+      <video id="my-video" class="video-js"></video>
+    </div>
+
+    <script>
+      var player = videojs(
+        "my-video",
+        {
+          controls: true,
+          fluid: true,
+          html5: {
+            vhs: {
+              overrideNative: true,
+            },
+          },
+        },
+        function () {
+          var player = this;
+          player.eme();
+          player.src({
+            src: "https://cdn.bitmovin.com/content/assets/art-of-motion_drm/mpds/11331.mpd",
+            type: "application/dash+xml",
+            keySystems: {
+              "com.widevine.alpha":
+                "https://cwip-shaka-proxy.appspot.com/no_auth",
+            },
+          });
+
+          player.ready(function () {
+            player.tech(true).on("keystatuschange", function (event) {
+              console.log("event: ", event);
+            });
+          });
+        }
+      );
+      console.log("my code");
+      console.log(player);
+      var segmentsArray = renderSegments();
+
+      player.on("loadedmetadata", function () {
+        let totalDuration = player.duration();
+
+        let progressControlChildElement = $(
+          player.controlBar.progressControl.children_[0].el_
+        );
+
+        for (let i = 0; i < segmentsArray.length; i++) {
+          let leftTime =
+            (segmentsArray[i].timeInSeconds / totalDuration) * 100 + "%";
+
+          let timeForSegment = segmentsArray[i].timeInSeconds;
+
+          let hoverElement = $(
+            '<div class="marker" style="left:' +
+              leftTime +
+              '" data-timeForSegment="' +
+              timeForSegment +
+              '"><span>' +
+              segmentsArray[i].label +
+              "</span></div>"
+          );
+
+          hoverElement.click(function () {
+            player.currentTime(timeForSegment);
+          });
+
+          progressControlChildElement.append(hoverElement);
+        }
+      });
+
+      console.log("player", player);
+
+      function renderSegments() {
+        return [
+          { timeInSeconds: 50, label: "Segment1" },
+          { timeInSeconds: 100, label: "Segment2" },
+          { timeInSeconds: 150, label: "Segment3" },
+          { timeInSeconds: 200, label: "Segment4" },
+        ];
+      }
+    </script>
+  </body>
+</html>
